@@ -10,6 +10,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 import data
+import macro
 import research
 
 st.set_page_config(page_title="Stock Dashboard", page_icon="📈", layout="wide")
@@ -507,6 +508,97 @@ def sum_of_parts(seg, info, price, cur):
     st.caption("Stima indicativa: dipende interamente dai multipli scelti. Non è un consiglio d'investimento.")
 
 
+# ---------------------------------------------------------------- macro: inflazione e disoccupazione
+
+LEVEL_ICON = {"alta": "🔴", "alto": "🟢", "media": "🟡", "medio": "🟡", "bassa": "🟢", "basso": "🔴"}
+
+
+def macro_section(d, close, res):
+    info = d["info"]
+    with st.spinner("Carico i dati su inflazione e disoccupazione…"):
+        areas, note = macro.areas_for(info.get("country"))
+    if note:
+        st.caption(note)
+
+    # 1. Ultimi valori
+    for area, series in areas:
+        st.markdown(f"##### {area}")
+        cols = st.columns(3)
+        for col, (key, label) in zip(cols, macro.SERIES.items()):
+            s = series.get(key)
+            if s is None or s.empty:
+                col.metric(label, "n.d.")
+                continue
+            prev = s[s.index <= s.index[-1] - pd.DateOffset(months=12)]
+            delta = f"{s.iloc[-1] - prev.iloc[-1]:+.1f} pt in 12 mesi" if len(prev) else None
+            col.metric(label, f"{s.iloc[-1]:.1f}%", delta, delta_color="inverse",
+                       help=f"Ultimo dato: {s.index[-1]:%m/%Y}")
+
+    # 2. Grafico macro + titolo
+    area, series = areas[0]
+    since = pd.Timestamp(macro.START)
+    fig = go.Figure()
+    for key, label in macro.SERIES.items():
+        s = series.get(key)
+        if s is not None:
+            fig.add_trace(go.Scatter(x=s[since:].index, y=s[since:], name=label.split(" (")[0], line=dict(width=2)))
+    idx = close.index.tz_localize(None) if close.index.tz is not None else close.index
+    px = close[idx >= since]
+    fig.add_trace(go.Scatter(x=px.index, y=px, name=f"Prezzo {info.get('symbol', '')}", yaxis="y2",
+                             line=dict(width=1, color="rgba(128,128,128,0.6)")))
+    fig.update_layout(height=380, margin=dict(l=0, r=0, t=30, b=0), hovermode="x unified",
+                      title=f"{area}: inflazione e disoccupazione vs prezzo del titolo",
+                      yaxis=dict(title="%"), yaxis2=dict(overlaying="y", side="right", showgrid=False),
+                      legend=dict(orientation="h", y=-0.15))
+    st.plotly_chart(fig, width="stretch")
+
+    # 3. Come ha reagito l'azienda: margini negli anni vs inflazione
+    st.markdown("##### Come hanno reagito i margini dell'azienda all'inflazione")
+    fin = d["fin"]
+    rev = get_row(fin, "Total Revenue", "Operating Revenue")
+    gross = get_row(fin, "Gross Profit")
+    op = get_row(fin, "Operating Income", "EBIT")
+    if rev is not None:
+        df = pd.DataFrame({"rev": rev, "gross": gross, "op": op}).sort_index()
+        df.index = df.index.year
+        cpi_y, ppi_y = macro.annual_average(series.get("cpi")), macro.annual_average(series.get("ppi"))
+        rows = pd.DataFrame({
+            "Anno": df.index,
+            "Inflazione consumo (media)": [cpi_y.get(y) if cpi_y is not None else None for y in df.index],
+            "Inflazione produzione (media)": [ppi_y.get(y) if ppi_y is not None else None for y in df.index],
+            "Crescita ricavi": df["rev"].pct_change().values * 100,
+            "Margine lordo": (df["gross"] / df["rev"]).values * 100 if gross is not None else None,
+            "Margine operativo": (df["op"] / df["rev"]).values * 100 if op is not None else None,
+        })
+        pct = st.column_config.NumberColumn(format="%.1f%%")
+        st.dataframe(rows, hide_index=True, width="stretch", column_config={
+            c: pct for c in rows.columns if c != "Anno"} | {"Anno": st.column_config.NumberColumn(format="%d")})
+        st.caption("Se i margini restano stabili mentre l'inflazione alla produzione sale, l'azienda riesce a "
+                   "trasferire i maggiori costi sui prezzi ai clienti (buon potere di prezzo).")
+    else:
+        st.caption("Bilanci storici non disponibili.")
+
+    # 4. Valutazione di Claude
+    st.markdown("##### Impatto sul titolo secondo Claude")
+    m = (res or {}).get("macro")
+    if not m:
+        st.info("Valutazione non ancora disponibile: verrà inclusa nella prossima ricerca di Claude "
+                "(puoi richiederla dalla scheda «🧠 Analisi Claude»).")
+        return
+    c = st.columns(3)
+    c[0].metric("Potere di prezzo", f"{LEVEL_ICON.get(m['potere_prezzo'], '')} {m['potere_prezzo'].title()}",
+                help="Capacità di aumentare i prezzi ai clienti senza perdere vendite")
+    c[1].metric("Sensibilità all'inflazione", f"{LEVEL_ICON.get(m['sensibilita_inflazione'], '')} "
+                f"{m['sensibilita_inflazione'].title()}")
+    c[2].metric("Sensibilità alla disoccupazione", f"{LEVEL_ICON.get(m['sensibilita_disoccupazione'], '')} "
+                f"{m['sensibilita_disoccupazione'].title()}")
+    st.markdown(f"**🛒 Prezzi al cliente:** {m['impatto_prezzi_consumo']}")
+    st.markdown(f"**🏭 Costi di produzione:** {m['impatto_costi_produzione']}")
+    st.markdown(f"**👷 Disoccupazione:** {m['impatto_disoccupazione']}")
+    if m.get("mercati_principali"):
+        st.caption(f"Mercati principali: {m['mercati_principali']}")
+
+
 # ---------------------------------------------------------------- ricerca Claude
 
 def get_research(symbol, company, info):
@@ -601,8 +693,9 @@ def stock_page(symbol):
     cat = st.radio("Tipo di analisi", list(data.CATEGORIES), format_func=data.CATEGORIES.get, horizontal=True,
                    index=list(data.CATEGORIES).index(default_cat))
 
-    t_an, t_news, t_fund, t_claude, t_risk, t_prof = st.tabs(
-        ["🎯 Aspettative analisti", "📰 Notizie", "📊 Fondamentali", "🧠 Analisi Claude", "⚠️ Rischio", "🏢 Profilo"])
+    t_an, t_news, t_fund, t_macro, t_claude, t_risk, t_prof = st.tabs(
+        ["🎯 Aspettative analisti", "📰 Notizie", "📊 Fondamentali", "🌍 Inflazione e lavoro", "🧠 Analisi Claude",
+         "⚠️ Rischio", "🏢 Profilo"])
     with t_an:
         analysts_section(d, price, cur)
     with t_news:
@@ -612,6 +705,8 @@ def stock_page(symbol):
             single_company_section(d, price, cur)
         else:
             conglomerate_section(d, seg, price, cur)
+    with t_macro:
+        macro_section(d, close, res)
     with t_claude:
         claude_section(symbol, company, info, res)
     with t_risk:

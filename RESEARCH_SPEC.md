@@ -31,6 +31,15 @@ Lo scopo è dare i dati che Yahoo Finance non fornisce, per valutare l'acquisto 
 - **Multipli:** per ogni segmento un multiplo ragionevole basato su concorrenti comparabili:
   `EV/EBIT` per segmenti in utile e maturi, `EV/Sales` per segmenti in perdita o in forte crescita.
 - **Sintesi, catalizzatori, rischi:** in italiano, concreti e aggiornati alle ultime notizie.
+- **Inflazione e disoccupazione (`macro`):** valuta come l'azienda è esposta a:
+  - *inflazione al consumo*: riesce ad aumentare i prezzi ai clienti senza perdere vendite (potere di prezzo)?
+    I suoi prodotti sono essenziali o rinviabili? Cosa è successo a volumi e prezzi nel 2021–2023?
+  - *inflazione alla produzione*: peso di materie prime, energia, trasporti e salari sui costi; contratti di
+    copertura; andamento dei margini lordi quando i costi sono saliti.
+  - *disoccupazione*: quanto i ricavi dipendono dai consumi delle famiglie o dalla spesa delle imprese
+    (prodotti ciclici o difensivi); effetto sul costo e sulla disponibilità di manodopera.
+  - *mercati principali*: in quali paesi/aree genera i ricavi, con le percentuali se riportate.
+  Basati su dati concreti (commenti del management, margini storici, mix di prodotti), non su frasi generiche.
 
 Regole: usa solo numeri trovati nelle fonti, mai inventati (`null` se mancano). Se un numero è ricavato per
 differenza o stimato, scrivilo in `note`. Tutti i testi in italiano.
@@ -63,10 +72,21 @@ differenza o stimato, scrivilo in `note`. Tutti i testi in italiano.
   "partecipazioni": [
     {"nome": "Esempio S.p.A.", "ticker_yahoo": "ESEMPIO.MI", "quota_pct": 25.0, "valore_mln": null, "note": "Quotata"}
   ],
+  "macro": {
+    "potere_prezzo": "alto",
+    "sensibilita_inflazione": "media",
+    "sensibilita_disoccupazione": "media",
+    "impatto_prezzi_consumo": "2-4 frasi su come l'inflazione al consumo influisce su prezzi e domanda.",
+    "impatto_costi_produzione": "2-4 frasi su costi di produzione, materie prime, salari e margini.",
+    "impatto_disoccupazione": "2-4 frasi su quanto domanda e costi dipendono dal mercato del lavoro.",
+    "mercati_principali": "Nord America 61%, Europa 25%, resto del mondo 14%"
+  },
   "fonti": [{"titolo": "Amazon Q4 2025 earnings release", "url": "https://..."}],
   "note": "Avvertenze sui dati."
 }
 ```
 
 Tipi: `ricavi`, `utile`, `crescita_ricavi_pct`, `quota_pct`, `valore_mln` sono numeri o `null`;
-`ticker_yahoo` è stringa o `null`; `metodo` è `EV/EBIT` o `EV/Sales`; `categoria` è `singole` o `suddivisioni`.
+`ticker_yahoo` è stringa o `null`; `metodo` è `EV/EBIT` o `EV/Sales`; `categoria` è `singole` o `suddivisioni`;
+`potere_prezzo` è `alto`, `medio` o `basso`; `sensibilita_inflazione` e `sensibilita_disoccupazione` sono
+`alta`, `media` o `bassa`.

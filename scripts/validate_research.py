@@ -48,6 +48,15 @@ def check(d):
         need(p, "quota_pct", NUM, w, nullable=True)
         need(p, "valore_mln", NUM, w, nullable=True)
         need(p, "note", str, w)
+    need(d, "macro", dict, "radice")
+    m = d.get("macro") if isinstance(d.get("macro"), dict) else {}
+    for k in ("impatto_prezzi_consumo", "impatto_costi_produzione", "impatto_disoccupazione", "mercati_principali"):
+        need(m, k, str, "macro")
+    if m.get("potere_prezzo") not in ("alto", "medio", "basso"):
+        errors.append("macro: potere_prezzo deve essere 'alto', 'medio' o 'basso'")
+    for k in ("sensibilita_inflazione", "sensibilita_disoccupazione"):
+        if m.get(k) not in ("alta", "media", "bassa"):
+            errors.append(f"macro: {k} deve essere 'alta', 'media' o 'bassa'")
     for i, f in enumerate(d["fonti"]):
         need(f, "titolo", str, f"fonti[{i}]")
         need(f, "url", str, f"fonti[{i}]")
