@@ -26,3 +26,13 @@ Si apre su http://localhost:8501.
 Ticker italiani: aggiungi `.MI` (es. `ENI.MI`, `RACE.MI`). Puoi anche scrivere il nome ("Ferrari").
 
 Dati da Yahoo Finance tramite `yfinance`: gratuiti, senza API key, ma non ufficiali e talvolta incompleti.
+
+## Ricerca automatica con Claude
+
+Quando si apre un titolo per la prima volta, Claude cerca sul web (bilanci, investor relations, SEC)
+i dati che Yahoo Finance non fornisce: segmenti, partecipazioni, categoria, sintesi, catalizzatori e rischi.
+Il risultato viene salvato in `research/<TICKER>.json` sul repository GitHub ed è condiviso da tutti gli utenti.
+
+Configurazione (Streamlit Cloud -> App settings -> Secrets), vedi `.streamlit/secrets.toml.example`:
+- `anthropic_api_key`: chiave API di Claude
+- `github_token`: token GitHub per salvare preferiti e ricerche nel repository

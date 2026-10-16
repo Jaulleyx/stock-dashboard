@@ -57,20 +57,27 @@ def _github_token():
         return None
 
 
-def save_favorites(favs):
-    """Salva in locale e, se configurato il token, anche su GitHub (così non si perde al riavvio)."""
-    content = json.dumps(favs, indent=2, ensure_ascii=False) + "\n"
-    FAV_FILE.write_text(content)
+def github_put(path, content, message):
+    """Scrive un file nel repository GitHub, così i dati restano salvati anche dopo un riavvio dell'app."""
     token = _github_token()
     if not token:
         return False
-    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/favorites.json"
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{path}"
     headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
-    sha = requests.get(url, headers=headers, timeout=10).json().get("sha")
-    r = requests.put(url, headers=headers, timeout=10, json={
-        "message": "Aggiorna preferiti", "sha": sha,
-        "content": base64.b64encode(content.encode()).decode()})
-    return r.ok
+    try:
+        sha = requests.get(url, headers=headers, timeout=10).json().get("sha")
+        body = {"message": message, "content": base64.b64encode(content.encode()).decode()}
+        if sha:
+            body["sha"] = sha
+        return requests.put(url, headers=headers, timeout=15, json=body).ok
+    except requests.RequestException:
+        return False
+
+
+def save_favorites(favs):
+    content = json.dumps(favs, indent=2, ensure_ascii=False) + "\n"
+    FAV_FILE.write_text(content)
+    return github_put("favorites.json", content, "Aggiorna preferiti")
 
 
 def find_favorite(favs, ticker):
@@ -154,6 +161,16 @@ def fx_rate(from_cur, to_cur):
         return float(yf.Ticker(f"{from_cur}{to_cur}=X").history(period="5d")["Close"].iloc[-1])
     except Exception:
         return None
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def market_cap(symbol):
+    """(capitalizzazione, valuta) di un titolo quotato, usato per valutare le partecipazioni."""
+    try:
+        info = yf.Ticker(symbol).info
+        return info.get("marketCap"), info.get("currency")
+    except Exception:
+        return None, None
 
 
 # ---------------------------------------------------------------- analisti

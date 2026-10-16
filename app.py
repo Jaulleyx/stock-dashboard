@@ -10,6 +10,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 import data
+import research
 
 st.set_page_config(page_title="Stock Dashboard", page_icon="📈", layout="wide")
 
@@ -370,17 +371,16 @@ def scorecard(info, price):
 
 # ---------------------------------------------------------------- scheda titolo: azienda con suddivisioni
 
-def conglomerate_section(d, symbol, price, cur):
+def conglomerate_section(d, seg, price, cur):
     info = d["info"]
-    seg = data.load_segments().get(symbol)
     t_seg, t_sotp, t_cons, t_hist = st.tabs(["Segmenti", "Somma delle parti", "Dati consolidati", "Bilanci storici"])
 
     with t_seg:
-        if not seg:
-            st.info(f"Dati per segmento non ancora presenti per {symbol}. Chiedi a Claude di aggiungerli "
-                    "(file `segments.json`).")
+        if not seg or not seg["segmenti"]:
+            st.info("Dati per segmento non disponibili: avvia la ricerca dalla scheda «🧠 Analisi Claude».")
         else:
             df = pd.DataFrame(seg["segmenti"])
+            df[["ricavi", "utile"]] = df[["ricavi", "utile"]].astype(float)
             df["margine"] = df["utile"] / df["ricavi"]
             st.caption(f"{seg['periodo']} · valori in milioni {seg['valuta']} · fonte: {seg['fonte']}")
             c1, c2 = st.columns(2)
@@ -404,6 +404,12 @@ def conglomerate_section(d, symbol, price, cur):
                 "Margine": st.column_config.NumberColumn(format="%.1f%%")})
             if seg.get("note"):
                 st.caption(seg["note"])
+        stakes = stakes_table(seg, seg["valuta"]) if seg else pd.DataFrame()
+        if not stakes.empty:
+            st.markdown("##### Partecipazioni")
+            st.dataframe(stakes, hide_index=True, width="stretch", column_config={
+                f"Valore (mln {seg['valuta']})": st.column_config.NumberColumn(format="%,.0f"),
+                "Quota %": st.column_config.NumberColumn(format="%.1f%%")})
 
     with t_sotp:
         if seg:
@@ -435,10 +441,31 @@ def conglomerate_section(d, symbol, price, cur):
         historical_financials(d, info.get("financialCurrency", cur))
 
 
+def stakes_table(seg, fcur):
+    """Partecipazioni con valore attuale: quotate a prezzo di mercato, le altre al valore stimato."""
+    rows = []
+    for p in seg.get("partecipazioni") or []:
+        value, how = p.get("valore_mln"), "stima"
+        if p.get("ticker_yahoo") and is_num(p.get("quota_pct")):
+            mcap, mcur = data.market_cap(p["ticker_yahoo"])
+            rate = data.fx_rate(mcur, fcur) if mcur else None
+            if is_num(mcap) and rate:
+                value, how = mcap * p["quota_pct"] / 100 * rate / 1e6, "mercato"
+        rows.append({"Partecipazione": p["nome"], "Ticker": p.get("ticker_yahoo") or "—", "Quota %": p.get("quota_pct"),
+                     f"Valore (mln {fcur})": value, "Valutazione": how, "Note": p.get("note", "")})
+    return pd.DataFrame(rows)
+
+
+def stakes_value(seg, fcur):
+    df = stakes_table(seg, fcur)
+    return float(df[f"Valore (mln {fcur})"].fillna(0).sum()) if not df.empty else 0.0
+
+
 def sum_of_parts(seg, info, price, cur):
     st.caption("Valuta ogni segmento con un multiplo, somma i valori e confronta con la capitalizzazione attuale. "
                "Modifica metodo e multipli nella tabella: il risultato si aggiorna.")
     df = pd.DataFrame(seg["segmenti"])[["nome", "ricavi", "utile", "metodo", "multiplo"]]
+    df[["ricavi", "utile"]] = df[["ricavi", "utile"]].astype(float)
     edited = st.data_editor(df, hide_index=True, width="stretch", disabled=["nome", "ricavi", "utile"], column_config={
         "nome": "Segmento",
         "ricavi": st.column_config.NumberColumn("Ricavi (mln)", format="%,.0f"),
@@ -446,14 +473,18 @@ def sum_of_parts(seg, info, price, cur):
         "metodo": st.column_config.SelectboxColumn("Metodo", options=["EV/EBIT", "EV/Sales"], required=True),
         "multiplo": st.column_config.NumberColumn("Multiplo", min_value=0.0, step=0.5, format="%.1fx"),
     }, key=f"sotp_{seg['periodo']}")
-    edited["valore"] = np.where(edited["metodo"] == "EV/EBIT", edited["utile"], edited["ricavi"]) * edited["multiplo"]
+    edited["valore"] = (np.where(edited["metodo"] == "EV/EBIT", edited["utile"], edited["ricavi"])
+                        * edited["multiplo"]).astype(float)
+    edited["valore"] = edited["valore"].fillna(0)
 
     fcur = seg["valuta"]
     rate = data.fx_rate(fcur, cur)
     net_debt = (info["totalDebt"] - info["totalCash"]) / 1e6 if is_num(info.get("totalDebt")) and is_num(info.get("totalCash")) else 0.0
     c1, c2 = st.columns(2)
     nd = c1.number_input(f"Debito netto (mln {fcur}, negativo = cassa)", value=float(round(net_debt)), step=1000.0)
-    inv = c2.number_input(f"Partecipazioni / investimenti non nei segmenti (mln {fcur})", value=0.0, step=1000.0)
+    inv = c2.number_input(f"Partecipazioni / investimenti non nei segmenti (mln {fcur})",
+                          value=float(round(stakes_value(seg, fcur))), step=1000.0,
+                          help="Precompilato con il valore di mercato attuale delle partecipazioni trovate da Claude.")
 
     ev = edited["valore"].sum()
     equity = ev - nd + inv
@@ -474,6 +505,66 @@ def sum_of_parts(seg, info, price, cur):
     fig.update_layout(height=340, margin=dict(l=0, r=0, t=10, b=0), yaxis_title=f"mln {fcur}")
     st.plotly_chart(fig, width="stretch")
     st.caption("Stima indicativa: dipende interamente dai multipli scelti. Non è un consiglio d'investimento.")
+
+
+# ---------------------------------------------------------------- ricerca Claude
+
+def run_research(symbol, company, info):
+    """Avvia la ricerca mostrando cosa sta cercando Claude; salva il risultato e lo restituisce."""
+    with st.status(f"🧠 Claude sta cercando i dati di {company}… (1-3 minuti)", expanded=True) as status:
+        try:
+            result = research.run(symbol, company, info, progress=lambda q: st.write(f"🔎 {q}"))
+        except Exception as e:
+            status.update(label=f"Ricerca non riuscita: {e}", state="error")
+            return None
+        saved = research.save(symbol, result)
+        status.update(label="Ricerca completata" + ("" if saved else " (salvata solo temporaneamente)"),
+                      state="complete", expanded=False)
+    return result
+
+
+def get_research(symbol, company, info):
+    """Ricerca salvata; se manca e Claude è configurato, la avvia automaticamente."""
+    res = research.load(symbol)
+    if res is None and research.api_key() and not st.session_state.get(f"research_failed_{symbol}"):
+        res = run_research(symbol, company, info)
+        if res is None:
+            st.session_state[f"research_failed_{symbol}"] = True  # evita di riprovare a ogni click
+    return res
+
+
+def segment_data(symbol, res):
+    """Dati per segmento: prima quelli della ricerca Claude, altrimenti quelli inseriti a mano."""
+    if res and (res.get("segmenti") or res.get("partecipazioni")):
+        return {"periodo": res["periodo"], "valuta": res["valuta"], "misura_utile": res["misura_utile"],
+                "fonte": f"ricerca Claude del {res['data_ricerca']}", "segmenti": res["segmenti"],
+                "partecipazioni": res.get("partecipazioni", []), "note": res.get("note", "")}
+    return data.load_segments().get(symbol)
+
+
+def claude_section(symbol, company, info, res):
+    if not research.api_key():
+        st.info("La ricerca automatica non è attiva: manca la chiave API di Claude nelle impostazioni dell'app.")
+        return
+    if res is None:
+        st.warning("Nessuna ricerca disponibile per questo titolo.")
+    else:
+        st.caption(f"Ricerca del {res['data_ricerca']}" + (" · più vecchia di 3 mesi" if research.is_stale(res) else ""))
+        st.markdown(res["sintesi"])
+        c1, c2 = st.columns(2)
+        c1.markdown("**🚀 Catalizzatori**\n" + "\n".join(f"- {x}" for x in res["catalizzatori"]))
+        c2.markdown("**⚠️ Rischi**\n" + "\n".join(f"- {x}" for x in res["rischi"]))
+        st.markdown(f"**Categoria suggerita:** {data.CATEGORIES[res['categoria']]} — {res['motivazione_categoria']}")
+        if res.get("note"):
+            st.caption(f"Note sui dati: {res['note']}")
+        if res.get("fonti"):
+            with st.expander("Fonti"):
+                for f in res["fonti"]:
+                    st.markdown(f"- [{f['titolo']}]({f['url']})")
+    if st.button("🔄 Rifai la ricerca" if res else "🔎 Avvia la ricerca"):
+        st.session_state.pop(f"research_failed_{symbol}", None)
+        if run_research(symbol, company, info):
+            st.rerun()
 
 
 # ---------------------------------------------------------------- scheda titolo
@@ -515,21 +606,27 @@ def stock_page(symbol):
 
     price_chart(close, cur)
 
-    default_cat = fav_cat or ("suddivisioni" if symbol in data.load_segments() else "singole")
+    company = clean_company_name(info.get("shortName") or long_name)
+    res = get_research(symbol, company, info)
+    seg = segment_data(symbol, res)
+
+    default_cat = fav_cat or (res or {}).get("categoria") or ("suddivisioni" if seg else "singole")
     cat = st.radio("Tipo di analisi", list(data.CATEGORIES), format_func=data.CATEGORIES.get, horizontal=True,
                    index=list(data.CATEGORIES).index(default_cat))
 
-    t_an, t_news, t_fund, t_risk, t_prof = st.tabs(
-        ["🎯 Aspettative analisti", "📰 Notizie", "📊 Fondamentali", "⚠️ Rischio", "🏢 Profilo"])
+    t_an, t_news, t_fund, t_claude, t_risk, t_prof = st.tabs(
+        ["🎯 Aspettative analisti", "📰 Notizie", "📊 Fondamentali", "🧠 Analisi Claude", "⚠️ Rischio", "🏢 Profilo"])
     with t_an:
         analysts_section(d, price, cur)
     with t_news:
-        news_section(d, clean_company_name(info.get("shortName") or long_name))
+        news_section(d, company)
     with t_fund:
         if cat == "singole":
             single_company_section(d, price, cur)
         else:
-            conglomerate_section(d, symbol, price, cur)
+            conglomerate_section(d, seg, price, cur)
+    with t_claude:
+        claude_section(symbol, company, info, res)
     with t_risk:
         risk_section(info, close, price)
     with t_prof:
