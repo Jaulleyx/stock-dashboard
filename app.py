@@ -509,27 +509,12 @@ def sum_of_parts(seg, info, price, cur):
 
 # ---------------------------------------------------------------- ricerca Claude
 
-def run_research(symbol, company, info):
-    """Avvia la ricerca mostrando cosa sta cercando Claude; salva il risultato e lo restituisce."""
-    with st.status(f"🧠 Claude sta cercando i dati di {company}… (1-3 minuti)", expanded=True) as status:
-        try:
-            result = research.run(symbol, company, info, progress=lambda q: st.write(f"🔎 {q}"))
-        except Exception as e:
-            status.update(label=f"Ricerca non riuscita: {e}", state="error")
-            return None
-        saved = research.save(symbol, result)
-        status.update(label="Ricerca completata" + ("" if saved else " (salvata solo temporaneamente)"),
-                      state="complete", expanded=False)
-    return result
-
-
 def get_research(symbol, company, info):
-    """Ricerca salvata; se manca e Claude è configurato, la avvia automaticamente."""
+    """Ricerca salvata; se manca, mette automaticamente il titolo in coda per Claude."""
     res = research.load(symbol)
-    if res is None and research.api_key() and not st.session_state.get(f"research_failed_{symbol}"):
-        res = run_research(symbol, company, info)
-        if res is None:
-            st.session_state[f"research_failed_{symbol}"] = True  # evita di riprovare a ogni click
+    if res is None and not research.queued(symbol) and not st.session_state.get(f"queue_failed_{symbol}"):
+        if not research.enqueue(symbol, company, info):
+            st.session_state[f"queue_failed_{symbol}"] = True  # evita di riprovare a ogni click
     return res
 
 
@@ -543,12 +528,14 @@ def segment_data(symbol, res):
 
 
 def claude_section(symbol, company, info, res):
-    if not research.api_key():
-        st.info("La ricerca automatica non è attiva: manca la chiave API di Claude nelle impostazioni dell'app.")
-        return
-    if res is None:
-        st.warning("Nessuna ricerca disponibile per questo titolo.")
-    else:
+    req = research.queued(symbol)
+    if req:
+        st.info(f"⏳ Ricerca in coda (richiesta il {req['richiesta'].replace('T', ' alle ')}). Claude la completa "
+                "entro circa un'ora, dal lunedì al venerdì tra le 8 e le 23. Ricarica la pagina più tardi.")
+    elif res is None:
+        st.warning("Impossibile mettere il titolo in coda: manca il token GitHub nelle impostazioni dell'app.")
+
+    if res:
         st.caption(f"Ricerca del {res['data_ricerca']}" + (" · più vecchia di 3 mesi" if research.is_stale(res) else ""))
         st.markdown(res["sintesi"])
         c1, c2 = st.columns(2)
@@ -561,10 +548,10 @@ def claude_section(symbol, company, info, res):
             with st.expander("Fonti"):
                 for f in res["fonti"]:
                     st.markdown(f"- [{f['titolo']}]({f['url']})")
-    if st.button("🔄 Rifai la ricerca" if res else "🔎 Avvia la ricerca"):
-        st.session_state.pop(f"research_failed_{symbol}", None)
-        if run_research(symbol, company, info):
-            st.rerun()
+        if not req and st.button("🔄 Richiedi una nuova ricerca"):
+            if research.enqueue(symbol, company, info, refresh=True):
+                st.rerun()
+            st.error("Impossibile mettere il titolo in coda: controlla il token GitHub.")
 
 
 # ---------------------------------------------------------------- scheda titolo

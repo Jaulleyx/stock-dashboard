@@ -29,10 +29,11 @@ Dati da Yahoo Finance tramite `yfinance`: gratuiti, senza API key, ma non uffici
 
 ## Ricerca automatica con Claude
 
-Quando si apre un titolo per la prima volta, Claude cerca sul web (bilanci, investor relations, SEC)
-i dati che Yahoo Finance non fornisce: segmenti, partecipazioni, categoria, sintesi, catalizzatori e rischi.
-Il risultato viene salvato in `research/<TICKER>.json` sul repository GitHub ed è condiviso da tutti gli utenti.
+Quando si apre un titolo senza dati, il sito lo mette in coda creando `requests/<TICKER>.json` nel repository.
+Un'attività pianificata di Claude (lun–ven, ogni ora dalle 8 alle 23, ora italiana) legge la coda, cerca sul web
+segmenti, partecipazioni, categoria, sintesi e rischi seguendo `RESEARCH_SPEC.md`, e salva il risultato in
+`research/<TICKER>.json`. I dati sono condivisi da tutti gli utenti del sito. Usa l'abbonamento Claude: nessuna
+chiave API a pagamento.
 
 Configurazione (Streamlit Cloud -> App settings -> Secrets), vedi `.streamlit/secrets.toml.example`:
-- `anthropic_api_key`: chiave API di Claude
-- `github_token`: token GitHub per salvare preferiti e ricerche nel repository
+- `github_token`: token GitHub con permesso Contents read/write, per la coda, le ricerche e i preferiti
