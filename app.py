@@ -465,8 +465,9 @@ def stakes_value(seg, fcur):
 def sum_of_parts(seg, info, price, cur):
     st.caption("Valuta ogni segmento con un multiplo, somma i valori e confronta con la capitalizzazione attuale. "
                "Modifica metodo e multipli nella tabella: il risultato si aggiorna.")
-    df = pd.DataFrame(seg["segmenti"])[["nome", "ricavi", "utile", "metodo", "multiplo"]]
-    df[["ricavi", "utile"]] = df[["ricavi", "utile"]].astype(float)
+    cols = ["nome", "ricavi", "utile", "metodo", "multiplo"]
+    df = pd.DataFrame(seg["segmenti"], columns=cols)[cols]  # vuoto per le holding: solo partecipazioni
+    df[["ricavi", "utile", "multiplo"]] = df[["ricavi", "utile", "multiplo"]].astype(float)
     edited = st.data_editor(df, hide_index=True, width="stretch", disabled=["nome", "ricavi", "utile"], column_config={
         "nome": "Segmento",
         "ricavi": st.column_config.NumberColumn("Ricavi (mln)", format="%,.0f"),
