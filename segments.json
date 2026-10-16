@@ -1,0 +1,27 @@
+{
+  "_nota": "Dati per segmento dagli ultimi bilanci annuali. Valori in milioni nella valuta indicata. 'multiplo' e 'metodo' sono i default del calcolatore somma delle parti (modificabili nell'app).",
+  "AMZN": {
+    "periodo": "FY2025 (anno chiuso il 31/12/2025)",
+    "valuta": "USD",
+    "fonte": "Amazon Q4 2025 earnings release, 5 febbraio 2026",
+    "misura_utile": "Utile operativo",
+    "segmenti": [
+      {"nome": "North America", "ricavi": 426300, "utile": 29600, "metodo": "EV/EBIT", "multiplo": 25},
+      {"nome": "International", "ricavi": 161900, "utile": 4700, "metodo": "EV/Sales", "multiplo": 1.0},
+      {"nome": "AWS", "ricavi": 128700, "utile": 45600, "metodo": "EV/EBIT", "multiplo": 30}
+    ]
+  },
+  "BABA": {
+    "periodo": "FY2026 (anno chiuso il 31/03/2026)",
+    "valuta": "CNY",
+    "fonte": "Alibaba March Quarter 2026 and Fiscal Year 2026 Results, 12 maggio 2026",
+    "misura_utile": "Adjusted EBITA",
+    "segmenti": [
+      {"nome": "China E-commerce Group", "ricavi": 554217, "utile": 107509, "metodo": "EV/EBIT", "multiplo": 9},
+      {"nome": "International Digital Commerce", "ricavi": 144170, "utile": -2051, "metodo": "EV/Sales", "multiplo": 1.0},
+      {"nome": "Cloud Intelligence Group", "ricavi": 158132, "utile": 14265, "metodo": "EV/Sales", "multiplo": 4},
+      {"nome": "Altri (Cainiao, Amap, media...) + non allocati", "ricavi": 254367, "utile": -43307, "metodo": "EV/Sales", "multiplo": 0.3}
+    ],
+    "note": "Ricavi dei segmenti prima delle elisioni infragruppo (totale consolidato RMB 1.023.670 mln). L'utile di 'Altri + non allocati' è ricavato per differenza dall'Adjusted EBITA di gruppo (RMB 76.416 mln)."
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "singole": [],
+  "suddivisioni": [
+    {"ticker": "AMZN", "nome": "Amazon"},
+    {"ticker": "BABA", "nome": "Alibaba"}
+  ]
+}
