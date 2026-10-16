@@ -1,0 +1,59 @@
+{
+  "ticker": "EXO.AS",
+  "data_ricerca": "2026-10-16",
+  "categoria": "suddivisioni",
+  "motivazione_categoria": "Holding di partecipazioni (famiglia Agnelli) con società molto diverse tra loro: auto di lusso, auto di massa, macchine agricole, sanità, calcio e gestione patrimoniale; va valutata come somma delle parti.",
+  "sintesi": "Exor è la holding quotata ad Amsterdam controllata dalla famiglia Agnelli-Elkann: guadagna dai dividendi e dalla rivalutazione delle partecipate, non da un'attività operativa propria. Al 30/06/2026 il NAV era di circa 32,0 miliardi di euro (157,9 € per azione, -3,9% nel semestre contro +11,8% dell'MSCI World) e il valore lordo degli attivi (GAV) di 35.768 milioni, dominato da Ferrari (12.250 milioni, circa un terzo del GAV), Lingotto, Philips e CNH. Nel 2025 il NAV per azione era sceso dell'8,1%, soprattutto per Stellantis, che nel primo semestre 2026 ha perso altri 2.016 milioni di valore e non pagherà dividendi nel 2026. La società sta riducendo l'esposizione all'auto (cessioni di Iveco, GEDI, Lifenet, NUO e accordo per Welltec) e dispone di circa 4 miliardi di liquidità da investire, con un indebitamento basso (LTV 6,9% a fine 2025). Il titolo tratta con uno sconto di circa il 56-58% sul NAV, e a settembre 2026 è stato lanciato un buyback fino a 500 milioni da eseguire entro marzo 2027.",
+  "catalizzatori": [
+    "Riduzione dello sconto sul NAV (circa 56-58%) grazie al buyback fino a 500 milioni di euro in corso fino a marzo 2027.",
+    "Impiego di circa 4 miliardi di liquidità in una nuova grande acquisizione o nell'aumento di partecipazioni esistenti (il tetto su Philips è stato alzato dal 20% al 22%).",
+    "Incasso dall'OPA di Tata Motors su Iveco (14,10 € per azione, chiusura prevista entro fine ottobre/inizio novembre 2026) e dalla cessione di Welltec (MOIC circa 2,4x).",
+    "Ripresa di Stellantis e del ciclo delle macchine agricole di CNH, che nel primo semestre 2026 ha già recuperato 736 milioni di valore.",
+    "Crescita di Lingotto (oltre 10 miliardi di dollari in gestione) e tenuta di Ferrari, prima partecipazione e principale fonte di valore."
+  ],
+  "rischi": [
+    "Forte concentrazione su Ferrari (circa un terzo del GAV): un calo del multiplo di Ferrari pesa direttamente sul NAV.",
+    "Stellantis in difficoltà: forte perdita di valore nel 2025-2026 e niente dividendi nel 2026, con minori flussi di cassa alla holding.",
+    "Lo sconto sul NAV può restare ampio o allargarsi, soprattutto se l'allocazione del capitale (es. Philips, Juventus) continua a deludere.",
+    "Juventus: perdite ricorrenti e nuovi aumenti di capitale (delega fino a 250 milioni, 60 milioni già versati da Exor), con valore della quota sceso del 29% nel semestre.",
+    "Rischio di esecuzione su una nuova grande acquisizione finanziata con la liquidità disponibile."
+  ],
+  "periodo": "1H2026 (al 30/06/2026); FY2025 (chiuso il 31/12/2025)",
+  "valuta": "EUR",
+  "misura_utile": "Non applicabile (holding valutata a NAV)",
+  "segmenti": [],
+  "partecipazioni": [
+    {"nome": "Ferrari N.V.", "ticker_yahoo": "RACE.MI", "quota_pct": 21.33, "valore_mln": 12250, "note": "Quotata. Quota sul capitale dal 20-F Ferrari 2025 (32,32% dei voti, al 04/02/2026). Valore al 30/06/2026."},
+    {"nome": "Lingotto Investment Management", "ticker_yahoo": null, "quota_pct": 100.0, "valore_mln": 4400, "note": "Non quotata. Gestore patrimoniale del gruppo (fondi Horizon, Intersection, ecc.), oltre 10 miliardi di dollari in gestione. Valore circa 4,4 miliardi al 30/06/2026 secondo la stampa (dato arrotondato). Quota del 100% non verificata in fonte ufficiale."},
+    {"nome": "Koninklijke Philips N.V.", "ticker_yahoo": "PHIA.AS", "quota_pct": 18.7, "valore_mln": 4418, "note": "Quotata. Quota 18,7% nel 2025 (lettera agli azionisti: oltre 19%); tetto alzato al 22%. Valore al 30/06/2026."},
+    {"nome": "CNH Industrial N.V.", "ticker_yahoo": "CNH", "quota_pct": 26.9, "valore_mln": 3616, "note": "Quotata (NYSE). 26,9% del capitale e 45,5% dei voti (Milano Finanza, aprile 2026). Valore al 30/06/2026."},
+    {"nome": "Stellantis N.V.", "ticker_yahoo": "STLAM.MI", "quota_pct": 14.4, "valore_mln": 2236, "note": "Quotata. Quota circa 14,4% del capitale (altre fonti: 15,5% dei diritti economici, 23,9% dei voti). Valore al 30/06/2026, in calo di 2.016 milioni nel semestre."},
+    {"nome": "Juventus Football Club S.p.A.", "ticker_yahoo": "JUVE.MI", "quota_pct": 65.375, "valore_mln": 557, "note": "Quotata. Valore al 30/06/2026 (789 milioni a fine 2025)."},
+    {"nome": "Iveco Group N.V.", "ticker_yahoo": "IVG.MI", "quota_pct": 27.06, "valore_mln": null, "note": "Quotata, in uscita: Exor ha aderito irrevocabilmente all'OPA di Tata Motors a 14,10 € per azione (43,19% dei voti); chiusura prevista fine ottobre/inizio novembre 2026."},
+    {"nome": "Institut Mérieux", "ticker_yahoo": null, "quota_pct": null, "valore_mln": null, "note": "Non quotata, partecipazione di minoranza (valutata con il metodo del patrimonio netto). Quota e valore non trovati."},
+    {"nome": "Christian Louboutin", "ticker_yahoo": null, "quota_pct": null, "valore_mln": null, "note": "Non quotata. Fonti non ufficiali indicano circa 24%, non verificato."},
+    {"nome": "Welltec", "ticker_yahoo": null, "quota_pct": null, "valore_mln": null, "note": "Non quotata, in cessione: accordo firmato nel 2026 con MOIC atteso di circa 2,4x."}
+  ],
+  "macro": {
+    "potere_prezzo": "medio",
+    "sensibilita_inflazione": "media",
+    "sensibilita_disoccupazione": "media",
+    "impatto_prezzi_consumo": "L'esposizione dipende dalle partecipate. Ferrari, circa un terzo del GAV, ha un potere di prezzo molto alto: clientela facoltosa e liste d'attesa le permettono di alzare i prezzi senza perdere volumi. Stellantis vende auto di massa, un acquisto rinviabile: dopo il boom dei prezzi del 2021-2023 ha perso volumi e margini nel 2024-2025, e questo ha pesato sul NAV. Philips (sanità) e Juventus sono meno legate al ciclo dei prezzi.",
+    "impatto_costi_produzione": "La holding ha costi propri trascurabili; il rischio passa dalle partecipate industriali. Stellantis, CNH e Iveco hanno un peso alto di acciaio, componenti, energia e manodopera sindacalizzata, e riescono a ribaltare i costi solo quando la domanda è forte. Ferrari ha protetto i margini grazie a prezzi e mix di modelli. Con l'uscita da Iveco e il calo del peso di Stellantis, l'esposizione all'inflazione dei costi industriali si sta riducendo.",
+    "impatto_disoccupazione": "Stellantis (auto di massa) e Iveco (veicoli commerciali) sono cicliche e soffrono quando calano occupazione e fiducia. CNH dipende soprattutto dai redditi agricoli e dalla spesa per investimenti più che dall'occupazione. Ferrari e Louboutin si rivolgono a clienti ricchi, poco toccati dalla disoccupazione. Philips e Institut Mérieux (sanità) sono relativamente difensive.",
+    "mercati_principali": "Portafoglio globale senza una ripartizione geografica consolidata. Peso sul GAV al 30/06/2026: Ferrari circa 34%, Lingotto circa 12%, Philips circa 12%, CNH circa 10%, Stellantis circa 6%, resto (Juventus, Iveco, partecipazioni non quotate, liquidità) circa 26%."
+  },
+  "fonti": [
+    {"titolo": "Exor Press Release - FY2025 Results (23/03/2026)", "url": "https://exor.com/sites/default/files/press-releases/2026-03/Exor%20Press%20Release%20-%20FY2025%20Results.pdf"},
+    {"titolo": "Exor Interim Report H1 2026", "url": "https://www.exor.com/system/files/2026/document-documents/EXOR%202026%20First-Half%20Report.pdf"},
+    {"titolo": "Exor Half-Year 2026 Results - Presentation", "url": "https://www.exor.com/system/files/2026/document-documents/Exor%20Half-Year%202026%20Results%20Conference%20Call%20-%20Presentation%20vF.pdf"},
+    {"titolo": "Teleborsa - Exor, Nav per azione -3,9% nel primo semestre e nuovo buyback da 500 milioni", "url": "https://www.teleborsa.it/News/2026/09/22/exor-nav-per-azione-3-9percent-nel-primo-semestre-e-nuovo-buyback-da-500-milioni-di-euro-169.html"},
+    {"titolo": "DIRE - Exor chiude i primi 6 mesi del 2026 con Nav a 32 miliardi", "url": "https://www.dire.it/23-09-2026/1269194-exor-chiude-i-primi-6-mesi-del-2026-con-nav-a-32-miliardi-e-lancia-buyback-da-500-milioni/"},
+    {"titolo": "Investing.com - Exor H1 2026 slides", "url": "https://za.investing.com/news/stock-market-news/exor-h1-2026-slides-nav-falls-39-as-buyback-cash-surge-93CH-4474521"},
+    {"titolo": "Calcio e Finanza - Azionariato Juventus dopo l'aumento di capitale", "url": "https://www.calcioefinanza.it/2026/03/10/azionariato-juventus-exor-tether-lindsell-train-aumento-capitale/"},
+    {"titolo": "Calciomercato - Exor, il valore della Juventus cala di 232 milioni", "url": "https://www.calciomercato.com/liste/exor-il-valore-della-juventus-cala-di-232-milioni/bltcf08ceb74a44a18a"},
+    {"titolo": "Milano Finanza - CNH, risultati primo trimestre 2026", "url": "https://www.milanofinanza.it/news/cnh-soffre-anche-nel-2026-l-utile-delle-macchine-agricole-controllate-da-exor-di-john-elkann-crolla-del-202604301316159991"},
+    {"titolo": "Sahi - Tata Motors offerta a 14,10 € per azione Iveco", "url": "https://www.sahi.com/news/tata-motors-announces-14-10-per-share-all-cash-offer-for-iveco-group-shares-5240904-PE1_"}
+  ],
+  "note": "Exor è una holding: non ha segmenti operativi con ricavi e utile propri, quindi 'segmenti' è vuoto e la valutazione va fatta sulle partecipazioni (somma delle parti meno debito netto). I documenti ufficiali su exor.com non erano raggiungibili da questo ambiente; i numeri vengono dalla ricerca web e da articoli di stampa che citano i comunicati Exor. Valori delle partecipazioni al 30/06/2026; il valore di Lingotto (circa 4,4 miliardi) è arrotondato. I pesi sul GAV in 'mercati_principali' sono calcolati da me dividendo i valori per il GAV di 35.768 milioni. Le quote di Philips (18,7% vs oltre 19%) e Stellantis (14,4% vs 15,5% economico) differiscono tra le fonti. La quota in Lingotto (100%) e quelle in Institut Mérieux e Louboutin non sono verificate in fonti ufficiali."
+}
